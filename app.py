@@ -82,12 +82,7 @@ st.caption("Select a site zone on the map or panel")
 
 color_map = {"Green": "#2ecc71", "Yellow": "#f1c40f", "Red": "#e74c3c"}
 
-m = folium.Map(
-    location=[52.4823, -1.9265],
-    zoom_start=14,
-    tiles="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-    attr='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-)
+m = folium.Map(location=[52.4823, -1.9265], zoom_start=14, tiles="OpenStreetMap")
 for _, row in zones_df.iterrows():
     res = results[row["zone_id"]]
     folium.CircleMarker(
