@@ -39,11 +39,11 @@ zones_df = load_zones()
 # HEADER
 # ----------------------------------------------------------------------
 
-st.markdown("###### Field Station · Ladywood, Birmingham")
+st.markdown("###### Field Station Â· Ladywood, Birmingham")
 st.title("Environmental Monitoring & Rehabilitation Console")
 st.caption(
     "Applying mining-derived geomechanics, hydrology, and dust-monitoring methods to urban "
-    "brownfield resilience.  52.4823° N, 1.9265° W"
+    "brownfield resilience.  52.4823Â° N, 1.9265Â° W"
 )
 st.info(
     "Prototype decision-support tool. Calculations use the simplified infinite-slope and "
@@ -51,7 +51,7 @@ st.info(
     "grounded in real BGS geology, DEFRA/UK-AIR monitoring, and UK design-storm practice, "
     "but should not replace a site-specific geotechnical or hydrological investigation. "
     "See README.md for full data sources and assumptions.",
-    icon="ℹ️",
+    icon="â„¹ï¸",
 )
 
 # ----------------------------------------------------------------------
@@ -77,7 +77,7 @@ results = evaluate_all(zones_df, rainfall_intensity)
 # SECTION 01 - GEOSPATIAL RISK HEAT MAP
 # ----------------------------------------------------------------------
 
-st.header("01 · Geospatial Risk Heat Map")
+st.header("01 Â· Geospatial Risk Heat Map")
 st.caption("Select a site zone on the map or panel")
 
 color_map = {"Green": "#2ecc71", "Yellow": "#f1c40f", "Red": "#e74c3c"}
@@ -106,11 +106,11 @@ with map_col:
     map_state = st_folium(m, height=430, width=None, returned_objects=["last_object_clicked_tooltip"])
 with legend_col:
     st.markdown("**Legend**")
-    st.markdown("🟢 Low Risk &nbsp;&nbsp; 🟡 Moderate Risk &nbsp;&nbsp; 🔴 High Risk")
+    st.markdown("ðŸŸ¢ Low Risk &nbsp;&nbsp; ðŸŸ¡ Moderate Risk &nbsp;&nbsp; ðŸ”´ High Risk")
     st.markdown("**Zones**")
     for _, row in zones_df.iterrows():
         res = results[row["zone_id"]]
-        dot = {"Green": "🟢", "Yellow": "🟡", "Red": "🔴"}[res["composite_color"]]
+        dot = {"Green": "ðŸŸ¢", "Yellow": "ðŸŸ¡", "Red": "ðŸ”´"}[res["composite_color"]]
         st.markdown(f"{dot} {row['zone_name']}")
 
 # Determine selected zone: from map click, else selectbox fallback
@@ -126,74 +126,98 @@ selected_zone_name = st.selectbox("Select a zone", zones_df["zone_name"], index=
 selected_row = zones_df[zones_df["zone_name"] == selected_zone_name].iloc[0]
 selected_result = results[selected_row["zone_id"]]
 
+def kpi_arrow(status):
+    style = {"High": ("â–²", "#e74c3c"), "Moderate": ("âžœ", "#f1c40f"), "Low": ("â–¼", "#2ecc71")}
+    arrow, color = style.get(status, ("âžœ", "#999999"))
+    return arrow, color
+
+
+def kpi_card(label, value, status):
+    arrow, color = kpi_arrow(status)
+    st.markdown(
+        f"""
+        <div style="padding:4px 0;">
+          <div style="font-size:0.85rem;color:#9ca3af;">{label}</div>
+          <div style="font-size:1.8rem;font-weight:600;">{value}</div>
+          <div style="color:{color};font-weight:600;">{arrow} {status}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 # ----------------------------------------------------------------------
 # SECTION 02 - ZONE PROFILE ANALYSIS
 # ----------------------------------------------------------------------
 
-st.header("02 · Zone Profile Analysis")
+st.header("02 Â· Zone Profile Analysis")
 
-profile_col1, profile_col2 = st.columns([1, 1])
+st.subheader(f"{selected_row['zone_name']}")
+st.caption(f"{selected_row['geology_unit']} Â· {selected_row['land_use']}")
 
-with profile_col1:
-    st.subheader(f"{selected_row['zone_name']}")
-    st.caption(f"{selected_row['geology_unit']} · {selected_row['land_use']}")
+# Full-width KPI row (not nested in a half-width column) so numbers never
+# get squeezed or wrapped on tablet/mid-size screens.
+k1, k2, k3, k4 = st.columns(4)
+with k1:
+    kpi_card("Factor of Safety", f"{selected_result['fs']:.2f}", selected_result["slope_result"].status)
+with k2:
+    kpi_card("Peak Runoff Q", f"{selected_result['Q_Ls']:.0f} L/s", selected_result["runoff_result"].status)
+with k3:
+    kpi_card("PM10", f"{selected_row['pm10_ugm3']:.0f} ug/m3", selected_result["dust10_result"].status)
+with k4:
+    kpi_card("PM2.5", f"{selected_row['pm25_ugm3']:.0f} ug/m3", selected_result["dust25_result"].status)
 
-    k1, k2, k3, k4 = st.columns(4)
-    k1.metric("Factor of Safety", f"{selected_result['fs']:.2f}", selected_result["slope_result"].status)
-    k2.metric("Peak Runoff Q", f"{selected_result['Q_Ls']:.0f} L/s", selected_result["runoff_result"].status)
-    k3.metric("PM10", f"{selected_row['pm10_ugm3']:.0f} ug/m3", selected_result["dust10_result"].status)
-    k4.metric("PM2.5", f"{selected_row['pm25_ugm3']:.0f} ug/m3", selected_result["dust25_result"].status)
+st.markdown("**Indicator Breakdown**")
+st.write(f"- Slope stability: {selected_result['slope_result'].detail}")
+st.write(f"- Surface runoff: {selected_result['runoff_result'].detail}")
+st.write(f"- PM10: {selected_result['dust10_result'].detail}")
+st.write(f"- PM2.5: {selected_result['dust25_result'].detail}")
 
-    st.markdown("**Indicator Breakdown**")
-    st.write(f"- Slope stability: {selected_result['slope_result'].detail}")
-    st.write(f"- Surface runoff: {selected_result['runoff_result'].detail}")
-    st.write(f"- PM10: {selected_result['dust10_result'].detail}")
-    st.write(f"- PM2.5: {selected_result['dust25_result'].detail}")
+with st.expander("Source parameters used for this zone"):
+    st.write(selected_row["source_notes"])
+    st.dataframe(selected_row.drop("source_notes").to_frame("value"))
 
-    with st.expander("Source parameters used for this zone"):
-        st.write(selected_row["source_notes"])
-        st.dataframe(selected_row.drop("source_notes").to_frame("value"))
+st.markdown("**Indicator Profile (Radar)**")
 
-with profile_col2:
-    st.markdown("**Indicator Profile (Radar)**")
+# Normalise each indicator to a 0-100 "risk severity" scale for the radar
+def norm_fs(fs):
+    return max(0, min(100, (2.0 - min(fs, 2.0)) / 2.0 * 100))
 
-    # Normalise each indicator to a 0-100 "risk severity" scale for the radar
-    def norm_fs(fs):
-        return max(0, min(100, (2.0 - min(fs, 2.0)) / 2.0 * 100))
+def norm_ratio(r):
+    return max(0, min(100, r * 100))
 
-    def norm_ratio(r):
-        return max(0, min(100, r * 100))
+def norm_pm(value, high_cutoff):
+    return max(0, min(100, value / high_cutoff * 100))
 
-    def norm_pm(value, high_cutoff):
-        return max(0, min(100, value / high_cutoff * 100))
+radar_values = [
+    norm_fs(selected_result["fs"]),
+    norm_ratio(selected_result["runoff_result"].value),
+    norm_pm(selected_row["pm10_ugm3"], engine.PM10_24HR_OBJECTIVE),
+    norm_pm(selected_row["pm25_ugm3"], engine.PM25_UK_ANNUAL_OBJECTIVE),
+]
+radar_labels = ["Slope Risk", "Runoff Risk", "PM10 Risk", "PM2.5 Risk"]
 
-    radar_values = [
-        norm_fs(selected_result["fs"]),
-        norm_ratio(selected_result["runoff_result"].value),
-        norm_pm(selected_row["pm10_ugm3"], engine.PM10_24HR_OBJECTIVE),
-        norm_pm(selected_row["pm25_ugm3"], engine.PM25_UK_ANNUAL_OBJECTIVE),
-    ]
-    radar_labels = ["Slope Risk", "Runoff Risk", "PM10 Risk", "PM2.5 Risk"]
-
-    fig_radar = go.Figure()
-    fig_radar.add_trace(go.Scatterpolar(
-        r=radar_values + [radar_values[0]],
-        theta=radar_labels + [radar_labels[0]],
-        fill="toself",
-        name=selected_row["zone_name"],
-        line_color=color_map[selected_result["composite_color"]],
-    ))
-    fig_radar.update_layout(
-        polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
-        showlegend=False, height=380, margin=dict(t=20, b=20),
-    )
-    st.plotly_chart(fig_radar, use_container_width=True)
+fig_radar = go.Figure()
+fig_radar.add_trace(go.Scatterpolar(
+    r=radar_values + [radar_values[0]],
+    theta=radar_labels + [radar_labels[0]],
+    fill="toself",
+    name=selected_row["zone_name"],
+    line_color=color_map[selected_result["composite_color"]],
+))
+# Full-width radar chart with generous margins so axis labels never get
+# clipped or require rotating the device to read.
+fig_radar.update_layout(
+    polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
+    showlegend=False, height=480, margin=dict(t=40, b=40, l=80, r=80),
+)
+st.plotly_chart(fig_radar, use_container_width=True)
 
 # ----------------------------------------------------------------------
 # SECTION 03 - CROSS-ZONE COMPARISON
 # ----------------------------------------------------------------------
 
-st.header("03 · Cross-Zone Comparison")
+st.header("03 Â· Cross-Zone Comparison")
 st.caption("Benchmark all five zones on one indicator")
 
 indicator = st.radio(
@@ -236,7 +260,7 @@ st.plotly_chart(fig_bar, use_container_width=True)
 # SECTION 04 - REHABILITATION INTERVENTION PLANNER
 # ----------------------------------------------------------------------
 
-st.header("04 · Rehabilitation Intervention Planner")
+st.header("04 Â· Rehabilitation Intervention Planner")
 st.caption(f"Adjust decision weights to rank strategies for: **{selected_row['zone_name']}**")
 
 st.markdown("**Decision Weights**")
@@ -254,7 +278,7 @@ ranked = engine.rank_interventions(selected_result, w_cost, w_effect, w_comm)
 
 st.markdown("**Ranked Interventions**")
 if not ranked:
-    st.success("No indicators are flagged Moderate or High for this zone — no rehabilitation "
+    st.success("No indicators are flagged Moderate or High for this zone â€” no rehabilitation "
                "intervention is currently triggered by the engine.")
 else:
     ranked_df = pd.DataFrame(ranked)[["domain", "name", "cost", "effectiveness", "community", "score"]]
@@ -266,6 +290,6 @@ else:
 
 st.divider()
 st.caption(
-    "Environmental Monitoring & Rehabilitation Planning Dashboard — School of Mining "
+    "Environmental Monitoring & Rehabilitation Planning Dashboard â€” School of Mining "
     "Engineering, Wits FEBE1004A, Group 24"
 )
