@@ -39,19 +39,18 @@ zones_df = load_zones()
 # HEADER
 # ----------------------------------------------------------------------
 
-st.markdown("###### Field Station Â· Ladywood, Birmingham")
+st.markdown("###### Field Station - Ladywood, Birmingham")
 st.title("Environmental Monitoring & Rehabilitation Console")
 st.caption(
     "Applying mining-derived geomechanics, hydrology, and dust-monitoring methods to urban "
-    "brownfield resilience.  52.4823Â° N, 1.9265Â° W"
+    "brownfield resilience.  52.4823 N, 1.9265 W"
 )
 st.info(
     "Prototype decision-support tool. Calculations use the simplified infinite-slope and "
     "Rational Method models specified in Progress Report 2 (Sec. 6). Zone parameters are "
     "grounded in real BGS geology, DEFRA/UK-AIR monitoring, and UK design-storm practice, "
     "but should not replace a site-specific geotechnical or hydrological investigation. "
-    "See README.md for full data sources and assumptions.",
-    icon="â„¹ï¸",
+    "See README.md for full data sources and assumptions."
 )
 
 # ----------------------------------------------------------------------
@@ -77,7 +76,7 @@ results = evaluate_all(zones_df, rainfall_intensity)
 # SECTION 01 - GEOSPATIAL RISK HEAT MAP
 # ----------------------------------------------------------------------
 
-st.header("01 Â· Geospatial Risk Heat Map")
+st.header("01 - Geospatial Risk Heat Map")
 st.caption("Select a site zone on the map or panel")
 
 color_map = {"Green": "#2ecc71", "Yellow": "#f1c40f", "Red": "#e74c3c"}
@@ -106,12 +105,20 @@ with map_col:
     map_state = st_folium(m, height=430, width=None, returned_objects=["last_object_clicked_tooltip"])
 with legend_col:
     st.markdown("**Legend**")
-    st.markdown("ðŸŸ¢ Low Risk &nbsp;&nbsp; ðŸŸ¡ Moderate Risk &nbsp;&nbsp; ðŸ”´ High Risk")
+    st.markdown(
+        '<span style="color:#2ecc71;">&#9679;</span> Low Risk &nbsp;&nbsp; '
+        '<span style="color:#f1c40f;">&#9679;</span> Moderate Risk &nbsp;&nbsp; '
+        '<span style="color:#e74c3c;">&#9679;</span> High Risk',
+        unsafe_allow_html=True,
+    )
     st.markdown("**Zones**")
     for _, row in zones_df.iterrows():
         res = results[row["zone_id"]]
-        dot = {"Green": "ðŸŸ¢", "Yellow": "ðŸŸ¡", "Red": "ðŸ”´"}[res["composite_color"]]
-        st.markdown(f"{dot} {row['zone_name']}")
+        dot_color = color_map[res["composite_color"]]
+        st.markdown(
+            f'<span style="color:{dot_color};">&#9679;</span> {row["zone_name"]}',
+            unsafe_allow_html=True,
+        )
 
 # Determine selected zone: from map click, else selectbox fallback
 clicked_name = None
@@ -127,8 +134,8 @@ selected_row = zones_df[zones_df["zone_name"] == selected_zone_name].iloc[0]
 selected_result = results[selected_row["zone_id"]]
 
 def kpi_arrow(status):
-    style = {"High": ("â–²", "#e74c3c"), "Moderate": ("âžœ", "#f1c40f"), "Low": ("â–¼", "#2ecc71")}
-    arrow, color = style.get(status, ("âžœ", "#999999"))
+    style = {"High": ("&#9650;", "#e74c3c"), "Moderate": ("~", "#f1c40f"), "Low": ("&#9660;", "#2ecc71")}
+    arrow, color = style.get(status, ("~", "#999999"))
     return arrow, color
 
 
@@ -150,10 +157,10 @@ def kpi_card(label, value, status):
 # SECTION 02 - ZONE PROFILE ANALYSIS
 # ----------------------------------------------------------------------
 
-st.header("02 Â· Zone Profile Analysis")
+st.header("02 - Zone Profile Analysis")
 
 st.subheader(f"{selected_row['zone_name']}")
-st.caption(f"{selected_row['geology_unit']} Â· {selected_row['land_use']}")
+st.caption(f"{selected_row['geology_unit']} - {selected_row['land_use']}")
 
 # Full-width KPI row (not nested in a half-width column) so numbers never
 # get squeezed or wrapped on tablet/mid-size screens.
@@ -217,7 +224,7 @@ st.plotly_chart(fig_radar, use_container_width=True)
 # SECTION 03 - CROSS-ZONE COMPARISON
 # ----------------------------------------------------------------------
 
-st.header("03 Â· Cross-Zone Comparison")
+st.header("03 - Cross-Zone Comparison")
 st.caption("Benchmark all five zones on one indicator")
 
 indicator = st.radio(
@@ -260,7 +267,7 @@ st.plotly_chart(fig_bar, use_container_width=True)
 # SECTION 04 - REHABILITATION INTERVENTION PLANNER
 # ----------------------------------------------------------------------
 
-st.header("04 Â· Rehabilitation Intervention Planner")
+st.header("04 - Rehabilitation Intervention Planner")
 st.caption(f"Adjust decision weights to rank strategies for: **{selected_row['zone_name']}**")
 
 st.markdown("**Decision Weights**")
@@ -278,7 +285,7 @@ ranked = engine.rank_interventions(selected_result, w_cost, w_effect, w_comm)
 
 st.markdown("**Ranked Interventions**")
 if not ranked:
-    st.success("No indicators are flagged Moderate or High for this zone â€” no rehabilitation "
+    st.success("No indicators are flagged Moderate or High for this zone - no rehabilitation "
                "intervention is currently triggered by the engine.")
 else:
     ranked_df = pd.DataFrame(ranked)[["domain", "name", "cost", "effectiveness", "community", "score"]]
@@ -290,6 +297,6 @@ else:
 
 st.divider()
 st.caption(
-    "Environmental Monitoring & Rehabilitation Planning Dashboard â€” School of Mining "
+    "Environmental Monitoring & Rehabilitation Planning Dashboard - School of Mining "
     "Engineering, Wits FEBE1004A, Group 24"
 )
