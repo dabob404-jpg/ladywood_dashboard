@@ -91,17 +91,17 @@ def classify_slope_risk(fs):
     if fs < FS_THRESHOLD_HIGH:
         return RiskResult(
             value=fs, status="High", flagged=True,
-            detail=f"FS = {fs:.2f} < {FS_THRESHOLD_HIGH} — flagged for further geotechnical investigation."
+            detail=f"FS = {fs:.2f} < {FS_THRESHOLD_HIGH} - flagged for further geotechnical investigation."
         )
     elif fs < FS_THRESHOLD_MODERATE:
         return RiskResult(
             value=fs, status="Moderate", flagged=False,
-            detail=f"FS = {fs:.2f} — below comfortable margin, recommend monitoring."
+            detail=f"FS = {fs:.2f} - below comfortable margin, recommend monitoring."
         )
     else:
         return RiskResult(
             value=fs, status="Low", flagged=False,
-            detail=f"FS = {fs:.2f} — stable under the simplified infinite-slope model."
+            detail=f"FS = {fs:.2f} - stable under the simplified infinite-slope model."
         )
 
 
@@ -128,7 +128,7 @@ def classify_runoff_risk(Q_Ls, Qcap_Ls):
     elif ratio >= RUNOFF_EXCEEDANCE_MODERATE:
         return RiskResult(
             value=ratio, status="Moderate", flagged=False,
-            detail=f"Q = {Q_Ls:.1f} L/s is at {ratio*100:.0f}% of drainage capacity — approaching exceedance."
+            detail=f"Q = {Q_Ls:.1f} L/s is at {ratio*100:.0f}% of drainage capacity - approaching exceedance."
         )
     else:
         return RiskResult(
@@ -147,10 +147,10 @@ def classify_pm10_risk(pm10_ugm3):
                            f"PM10 = {pm10_ugm3:.1f} ug/m3 >= {PM10_24HR_OBJECTIVE} ug/m3 24-hr objective.")
     elif pm10_ugm3 >= PM10_ANNUAL_OBJECTIVE * 0.7:
         return RiskResult(pm10_ugm3, "Moderate", False,
-                           f"PM10 = {pm10_ugm3:.1f} ug/m3 — elevated relative to annual objective of {PM10_ANNUAL_OBJECTIVE} ug/m3.")
+                           f"PM10 = {pm10_ugm3:.1f} ug/m3 - elevated relative to annual objective of {PM10_ANNUAL_OBJECTIVE} ug/m3.")
     else:
         return RiskResult(pm10_ugm3, "Low", False,
-                           f"PM10 = {pm10_ugm3:.1f} ug/m3 — within UK objectives.")
+                           f"PM10 = {pm10_ugm3:.1f} ug/m3 - within UK objectives.")
 
 
 def classify_pm25_risk(pm25_ugm3):
@@ -159,10 +159,10 @@ def classify_pm25_risk(pm25_ugm3):
                            f"PM2.5 = {pm25_ugm3:.1f} ug/m3 >= {PM25_UK_ANNUAL_OBJECTIVE} ug/m3 UK annual objective.")
     elif pm25_ugm3 >= PM25_INTERIM_TARGET_2028:
         return RiskResult(pm25_ugm3, "Moderate", False,
-                           f"PM2.5 = {pm25_ugm3:.1f} ug/m3 — above the 2028 interim target of {PM25_INTERIM_TARGET_2028} ug/m3.")
+                           f"PM2.5 = {pm25_ugm3:.1f} ug/m3 - above the 2028 interim target of {PM25_INTERIM_TARGET_2028} ug/m3.")
     else:
         return RiskResult(pm25_ugm3, "Low", False,
-                           f"PM2.5 = {pm25_ugm3:.1f} ug/m3 — within current UK targets.")
+                           f"PM2.5 = {pm25_ugm3:.1f} ug/m3 - within current UK targets.")
 
 
 # ---------------------------------------------------------------------
