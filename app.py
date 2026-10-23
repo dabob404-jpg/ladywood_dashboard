@@ -451,5 +451,5 @@ with st.expander("About this prototype"):
 
 st.caption(
     "Environmental Monitoring & Rehabilitation Planning Dashboard — School of Mining "
-    "Engineering, Wits FEBE1004A, Group 24"
+    "Engineering, Wits FEBE1004A, Group 23"
 )
